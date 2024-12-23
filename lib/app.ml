@@ -1,10 +1,6 @@
 open Unix
 
-type t = {
-  name: string;
-  routes: Routes.t;
-  port: int;
-}
+type t = { name : string; routes : Routes.t; port : int }
 
 let initialize name routes port = { name; routes; port }
 
@@ -13,7 +9,7 @@ let addr_to_str = function
   | ADDR_INET (addr, port) ->
       Printf.sprintf "%s:%d" (Unix.string_of_inet_addr addr) port
 
-let handle_client (client_sock : file_descr) (client_addr : sockaddr) =
+let handle_client app (client_sock : file_descr) (client_addr : sockaddr) =
   (* Read the HTTP request into a string *)
   let request = Http.read_http_request client_sock in
 
@@ -29,18 +25,8 @@ let handle_client (client_sock : file_descr) (client_addr : sockaddr) =
   flush Stdlib.stdout;
 
   (* Basic routing *)
-  let response_body =
-    match path with
-    | "/" -> "Welcome to my basic HTTP server!"
-    | "/hello" -> "Hello, world!"
-    | _ -> "404 Not Found"
-  in
-
-  let status = match path with
-    | "/" -> Http.OK
-    | "/hello" -> OK
-    | _ -> Not_Found
-  in
+  let mtd = Http.from_string_http_method method_ in
+  let status, response_body = Routes.handle app.routes mtd path in
 
   let response = Http.build_http_response ~status response_body in
 
@@ -51,7 +37,8 @@ let handle_client (client_sock : file_descr) (client_addr : sockaddr) =
   shutdown client_sock SHUTDOWN_ALL;
   close client_sock
 
-let run_server port =
+let run_server app =
+  let port = app.port in
   (* Create a TCP socket *)
   let sock = socket PF_INET SOCK_STREAM 0 in
 
@@ -71,7 +58,7 @@ let run_server port =
   while true do
     (* Accept incoming connection requests *)
     let client_sock, client_addr = accept sock in
-    handle_client client_sock client_addr
+    handle_client app client_sock client_addr
   done
 
-let run (app:t) = run_server app.port
+let run (app : t) = run_server app

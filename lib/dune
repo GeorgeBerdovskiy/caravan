@@ -1,4 +1,5 @@
 (library
  (name server)
+ (public_name server)
  (libraries unix)
  (modules app control routes http))

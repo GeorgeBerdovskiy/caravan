@@ -1,8 +1,6 @@
 open Unix
 
-type http_method =
-  | GET
-  | POST
+type http_method = GET | POST
 
 (** Abstract type representing HTTP content types. *)
 type content_type =
@@ -42,12 +40,18 @@ let to_string_content_type = function
   | Text_Plain -> "text/plain"
   | Application_Json -> "application/json"
 
+let from_string_http_method = function
+  | "GET" -> GET
+  | "POST" -> POST
+  | _ -> GET
+
 (** Build an HTTP response using the provided status and content type. Default
     status is [OK] and default content type is [text/plain]. *)
 let build_http_response ?(status = OK) ?(content_type = Text_Plain) body =
   let status_string = to_string_status status in
   let content_type_string = to_string_content_type content_type in
-  Printf.sprintf "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s"
+  Printf.sprintf
+    "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s"
     status_string content_type_string (String.length body) body
 
 let read_http_request sock =
@@ -63,5 +67,5 @@ let read_http_request sock =
 let parse_request_line line =
   match String.split_on_char ' ' line with
   | [ method_; path; _version ] -> (method_, path)
-  | _ -> ("", "") (* Invalid request line *)
-  
+  | _ -> ("", "")
+(* Invalid request line *)

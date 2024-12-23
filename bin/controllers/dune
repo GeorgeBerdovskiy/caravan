@@ -1,0 +1,4 @@
+(library
+ (name controllers)
+ (public_name server.controllers)
+ (libraries server))
