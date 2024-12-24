@@ -9,5 +9,5 @@ let register routes path controller =
   routes
 
 let handle (routes : t) mtd path =
-  let (module C) = Hashtbl.find routes path in
+  let (module C) = try Hashtbl.find routes path with _ -> (module NotFound) in
   C.handle_request mtd

@@ -4,12 +4,23 @@ type t = { name : string; routes : Routes.t; port : int }
 
 let initialize name routes port = { name; routes; port }
 
+let countdown_from n =
+  let rec count n =
+    if n > 0 then (
+      print_int n;
+      print_newline ();
+      Unix.sleep 1;
+      count (n - 1))
+    else print_endline "Time's up!"
+  in
+  count n
+
 let addr_to_str = function
   | ADDR_UNIX s -> s
   | ADDR_INET (addr, port) ->
       Printf.sprintf "%s:%d" (Unix.string_of_inet_addr addr) port
 
-let handle_client app (client_sock : file_descr) (client_addr : sockaddr) =
+let handle_client app (client_sock, client_addr) =
   (* Read the HTTP request into a string *)
   let request = Http.read_http_request client_sock in
 
@@ -37,6 +48,12 @@ let handle_client app (client_sock : file_descr) (client_addr : sockaddr) =
   shutdown client_sock SHUTDOWN_ALL;
   close client_sock
 
+let print_queue q =
+  Printf.printf "Queue contents: [";
+  Queue.iter (fun (_, addr) -> Printf.printf "(%s)" (addr_to_str addr)) q;
+  Printf.printf "]\n";
+  flush Stdlib.stdout
+
 let run_server app =
   let port = app.port in
   (* Create a TCP socket *)
@@ -55,10 +72,23 @@ let run_server app =
   Printf.printf "Server listening on port %d...\n" port;
   flush Stdlib.stdout;
 
+  (* Create the worker pool *)
+  let worker_pool = Worker.create_pool 5 5 (handle_client app) in
+
+  (* Round-robin request distribution *)
+  let next_worker_index = ref 0 in
+
   while true do
-    (* Accept incoming connection requests *)
     let client_sock, client_addr = accept sock in
-    handle_client app client_sock client_addr
+
+    (* Get the next worker in round-robin fashion *)
+    let worker_index = !next_worker_index mod worker_pool.worker_count in
+    let worker = List.nth worker_pool.workers worker_index in
+
+    (* Send request to the worker's channel *)
+    let _ = Event.sync (Event.send worker.channel (client_sock, client_addr)) in
+
+    next_worker_index := !next_worker_index + 1
   done
 
 let run (app : t) = run_server app

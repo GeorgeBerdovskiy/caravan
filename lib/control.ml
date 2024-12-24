@@ -14,3 +14,8 @@ end) : Controller = struct
   let post = Base.post
   let handle_request = function GET -> get () | POST -> post ()
 end
+
+module NotFound = MakeController (struct
+  let get () = (Http.Not_Found, "Oops! This page doesn't exist.")
+  let post () = (Http.Not_Found, "Oops! this page doesn't exist.")
+end)
