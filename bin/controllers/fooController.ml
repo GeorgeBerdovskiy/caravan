@@ -1,6 +1,6 @@
 open Server
 
 module FooController = Control.MakeController (struct
-  let get () = (Http.OK, "Hello from FooController!")
-  let post () = (Http.Created, "Post from FooController!")
+  let get () = Response.json Http.OK "{ \"hello\": \"world\" }"
+  let post () = Response.json Http.Created "{ \"hello\": \"world\" }"
 end)

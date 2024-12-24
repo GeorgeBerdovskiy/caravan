@@ -37,9 +37,7 @@ let handle_client app (client_sock, client_addr) =
 
   (* Basic routing *)
   let mtd = Http.from_string_http_method method_ in
-  let status, response_body = Routes.handle app.routes mtd path in
-
-  let response = Http.build_http_response ~status response_body in
+  let response = Routes.handle app.routes mtd path in
 
   (* Send response *)
   ignore

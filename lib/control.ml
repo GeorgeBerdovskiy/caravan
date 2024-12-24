@@ -1,14 +1,14 @@
 open Http
 
 module type Controller = sig
-  val handle_request : Http.http_method -> Http.status * string
-  val get : unit -> Http.status * string
-  val post : unit -> Http.status * string
+  val handle_request : Http.http_method -> string
+  val get : unit -> string
+  val post : unit -> string
 end
 
 module MakeController (Base : sig
-  val get : unit -> Http.status * string
-  val post : unit -> Http.status * string
+  val get : unit -> string
+  val post : unit -> string
 end) : Controller = struct
   let get = Base.get
   let post = Base.post
@@ -16,6 +16,6 @@ end) : Controller = struct
 end
 
 module NotFound = MakeController (struct
-  let get () = (Http.Not_Found, "Oops! This page doesn't exist.")
-  let post () = (Http.Not_Found, "Oops! this page doesn't exist.")
+  let get () = Response.json Http.Not_Found ""
+  let post () = Response.json Http.Not_Found ""
 end)

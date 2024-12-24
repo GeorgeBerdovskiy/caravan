@@ -2,4 +2,4 @@
  (name server)
  (public_name server)
  (libraries unix threads)
- (modules app control routes worker http))
+ (modules app control routes worker http response))
