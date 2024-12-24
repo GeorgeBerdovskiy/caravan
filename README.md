@@ -3,10 +3,6 @@ Web application framework written from scratch using OCaml.
 
 ## About Caravan
 
-> I hear and I forget. I see and I remember. I do and I understand.
-> 
-> _- Confucius_
-
 I've been _using_ web frameworks to build APIs and user-facing web applications for years, but my understanding of their inner workings is hazy at best.
 
 How does my Express API handle hundreds of requests per second? How does my Ruby on Rails application make routing decisions? These are questions that I can only answer vaguely. Interrogate me beyond shallow concepts and I'm lost.
